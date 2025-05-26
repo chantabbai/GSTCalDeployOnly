@@ -8,7 +8,7 @@ services:
   run_command: streamlit run app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true
   environment_slug: python
   instance_count: 1
-  instance_size_slug: basic-xxs
+  instance_size_slug: basic-xs
   http_port: 8080
   envs:
   - key: PORT
