@@ -1,0 +1,23 @@
+name: gst-calculator-india
+services:
+- name: web
+  source_dir: /
+  github:
+    repo: chantabbai/GSTCalDeployOnly
+    branch: main
+  run_command: streamlit run app.py --server.port $PORT --server.address 0.0.0.0
+  environment_slug: python
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  http_port: 8080
+  envs:
+  - key: PORT
+    value: "8080"
+  - key: DATABASE_URL
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+  routes:
+  - path: /
+domains:
+- domain: gstcalcindia.com
+  type: PRIMARY
