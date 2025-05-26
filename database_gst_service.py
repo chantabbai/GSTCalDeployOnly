@@ -48,8 +48,9 @@ class DatabaseGSTService:
     
     def get_categories_with_scenarios(self) -> Dict[str, List[Dict]]:
         """Get all product categories and their scenarios from database with optimized single query"""
-        # Always fetch fresh data - no caching for accurate rates
-        self._cached_categories = None
+        # Use aggressive caching for better performance with cloud databases
+        if self._cached_categories is not None:
+            return self._cached_categories
             
         try:
             conn = self.get_connection()
