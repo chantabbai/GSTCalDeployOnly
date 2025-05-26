@@ -8,15 +8,69 @@ import os
 from database_gst_service import get_category_list, get_category_scenarios, gst_db_service
 from utils import format_currency, calculate_gst, calculate_gst_breakdown, validate_amount
 
-@st.cache_data(ttl=300)  # Cache for 5 minutes
+@st.cache_data(ttl=3600)  # Cache for 1 hour for better performance
 def get_cached_categories():
     """Get categories with caching for faster loading"""
     return get_category_list()
 
-@st.cache_data(ttl=300)  # Cache for 5 minutes  
+@st.cache_data(ttl=3600)  # Cache for 1 hour for better performance
 def get_cached_scenarios(category):
     """Get scenarios with caching for faster loading"""
     return get_category_scenarios(category)
+
+def show_loading_screen():
+    """Show engaging loading screen while data loads"""
+    st.markdown("""
+    <div style="text-align: center; padding: 3rem 0;">
+        <div style="animation: spin 1s linear infinite; font-size: 3rem; margin-bottom: 1rem;">🧮</div>
+        <h2 style="color: #1f77b4; margin-bottom: 1rem;">Loading GST Calculator</h2>
+        <p style="color: #666; font-size: 1.1rem; margin-bottom: 1.5rem;">Fetching latest CBIC rates and categories...</p>
+        
+        <div style="background: #f0f9ff; border-radius: 8px; padding: 1.5rem; margin: 1rem auto; max-width: 500px;">
+            <h3 style="color: #1f77b4; margin-bottom: 1rem;">📊 What's Loading</h3>
+            <div style="text-align: left;">
+                <div style="margin: 0.5rem 0;">✅ 38+ Product Categories</div>
+                <div style="margin: 0.5rem 0;">✅ 120+ HSN/SAC Codes</div>
+                <div style="margin: 0.5rem 0;">✅ Official CBIC Rates</div>
+                <div style="margin: 0.5rem 0;">✅ Real-time Calculations</div>
+            </div>
+        </div>
+        
+        <div style="background: #fef3c7; border-radius: 8px; padding: 1rem; margin: 1rem auto; max-width: 400px;">
+            <div style="font-weight: 600; color: #d97706;">💡 Did You Know?</div>
+            <div style="color: #92400e; margin-top: 0.5rem;">
+                GST rates are sourced directly from official government notifications to ensure 100% accuracy
+            </div>
+        </div>
+    </div>
+    
+    <style>
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    # Load data in background
+    with st.spinner(""):
+        try:
+            # Load categories and stats
+            categories = get_cached_categories()
+            db_stats = gst_db_service.get_database_stats()
+            
+            # Store in session state
+            st.session_state.categories_data = categories
+            st.session_state.db_stats = db_stats
+            st.session_state.data_loaded = True
+            
+            # Auto-refresh to show main app
+            st.rerun()
+            
+        except Exception as e:
+            st.error(f"⚠️ Unable to load GST data: {e}")
+            st.info("💡 Please refresh the page to try again")
+            st.stop()
 
 def inject_google_analytics():
     """Google Analytics is now loaded directly in the page head"""
