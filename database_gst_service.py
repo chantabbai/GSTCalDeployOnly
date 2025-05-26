@@ -14,20 +14,33 @@ class DatabaseGSTService:
         self._cached_categories = None  # Add caching
     
     def get_connection(self):
-        """Get database connection with proper SSL configuration"""
+        """Get database connection with proper SSL configuration for DigitalOcean"""
         try:
-            # Add SSL configuration for cloud database
-            if self.connection_string and 'sslmode=require' in self.connection_string:
-                return psycopg2.connect(self.connection_string)
+            # Enhanced SSL configuration for cloud deployment
+            if self.connection_string:
+                # Parse connection string and add SSL settings
+                import urllib.parse
+                
+                # For DigitalOcean deployment, use specific SSL settings
+                ssl_params = {
+                    'sslmode': 'require',
+                    'sslcert': None,
+                    'sslkey': None,
+                    'sslrootcert': None,
+                    'connect_timeout': 30
+                }
+                
+                return psycopg2.connect(self.connection_string, **ssl_params)
             else:
-                # Fallback connection parameters
+                # Fallback connection parameters with SSL
                 return psycopg2.connect(
                     host=os.getenv('PGHOST', 'localhost'),
                     port=os.getenv('PGPORT', '5432'),
                     user=os.getenv('PGUSER'),
                     password=os.getenv('PGPASSWORD'),
                     database=os.getenv('PGDATABASE'),
-                    sslmode='require'
+                    sslmode='require',
+                    connect_timeout=30
                 )
         except Exception as e:
             print(f"Database connection failed: {e}")
